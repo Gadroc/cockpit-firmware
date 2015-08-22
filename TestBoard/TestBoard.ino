@@ -1,10 +1,13 @@
 #include "DcsBios.h"
 
-Led LangingGearHandle(28, 1<<3, 13);
+Led EGI(29, 1 << 6, 13);
+Switch2Pos MasterCautionButton("UFC_MASTER_CAUTION", 4);
+Potentiometer lcpFlightInst("LCP_FLIGHT_INST", A0);
+PwmLed instrumentBacklight(0, 3);
 
 void setup() {
   Serial.begin(250000);
-  DcsBiosDevice.begin(&Serial, 8, 0, 2);
+  DcsBiosDevice.begin(&Serial, 8, 0, 0);
 }
 
 void loop() {
