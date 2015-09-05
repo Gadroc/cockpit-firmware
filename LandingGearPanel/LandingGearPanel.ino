@@ -4,6 +4,8 @@
 #include "DcsBiosMcp.h"
 #include "DcsBiosServo.h"
 
+DcsBiosRs485Device dcsBiosDevice;
+
 // Setup for fast I2C
 #define CPU_FREQ 16000000L
 #define TWI_FREQ 400000L
@@ -11,35 +13,44 @@
 Mcp23017 inputPins(B0100001);
 Mcp23018 outputPins(B0100000);
 
-Led leftSafe(28, 1<<0, outputPins.getPin(1));
-Led noseSafe(28, 1<<1, outputPins.getPin(2));
-Led rightSafe(28, 1<<2, outputPins.getPin(3));
-Led gearHandleLight(28, 1<<3, outputPins.getPin(0));
-PwmLed backlight(0, 3);
+Led leftSafe(0x1026, 0x1000, 12, outputPins.getPin(1));
+Led noseSafe(0x1026, 0x0800, 11, outputPins.getPin(2));
+Led rightSafe(0x1026, 0x2000, 13, outputPins.getPin(3));
+Led gearHandleLight(0x1026, 0x4000, 14, outputPins.getPin(0));
+DimmableLed backlight(0x114c, 0xffff, 0, 3);
 
 Switch2Pos gearLever("GEAR_LEVER", inputPins.getPin(0));
 Switch3Pos landingLights("LANDING_LIGHTS", inputPins.getPin(1), inputPins.getPin(2));
 
-char* ANTISKID_MESSAGE = "ANTI_SKID_SWITCH";
-ActionButton antiSkidSwitchRelease(ANTISKID_MESSAGE, "RELEASE", inputPins.getPin(3));
-ActionButton antiSkidSwitchPush(ANTISKID_MESSAGE, "PUSH", inputPins.getPin(3));
-ActionButton antiSkidSwitchOff(ANTISKID_MESSAGE, "OFF", inputPins.getPin(4));
+ActionButton antiSkidSwitchPush("ANTI_SKID_SWITCH", "PUSH", inputPins.getPin(3));
+ActionButton antiSkidSwitchOff("ANTI_SKID_SWITCH", "OFF", inputPins.getPin(4));
 
-ServoOutput flapsPosition(10, 708, 1250);
+ServoOutput flapsPosition(0x10a0, 0xffff, 0, 670, 1250);
 
 void setup() {
+  Serial.begin(250000);
+  dcsBiosDevice.begin(&Serial, 8, 1);
+
   Wire.begin();
   TWBR = ((CPU_FREQ / TWI_FREQ) - 16) / 2;
 
   outputPins.begin();
   inputPins.begin();
 
-  flapsPosition.begin(A0);
-  
-  Serial.begin(250000);
-  DcsBiosDevice.begin(&Serial, 8, 0, 2);
+  flapsPosition.attach(A0);
+
+  PollingInput::initInputs();
 }
 
 void loop() {
-  DcsBiosDevice.process();
+  dcsBiosDevice.process();
+  PollingInput::pollInputs();
 }
+
+void onDcsBiosFrameSync() {
+}
+
+void sendDcsBiosMessage(const char* msg, const char* arg) {
+  dcsBiosDevice.sendDcsBiosMessage(msg, arg);
+}
+
