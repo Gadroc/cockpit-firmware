@@ -4,7 +4,7 @@
 #include "DcsBiosMcp.h"
 #include "DcsBiosServo.h"
 
-DcsBiosRs485Device dcsBiosDevice;
+DcsBiosRs485Device dcsBiosDevice(Serial, 8, 2);
 
 // Setup for fast I2C
 #define CPU_FREQ 16000000L
@@ -29,7 +29,6 @@ ServoOutput flapsPosition(0x10a0, 0xffff, 0, 670, 1250);
 
 void setup() {
   Serial.begin(250000);
-  dcsBiosDevice.begin(&Serial, 8, 1);
 
   Wire.begin();
   TWBR = ((CPU_FREQ / TWI_FREQ) - 16) / 2;

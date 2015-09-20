@@ -4,7 +4,7 @@
 #include <LiquidCrystal.h>
 #include "CmspDisplayLine.h"
 
-DcsBiosRs485Device dcsBiosDevice;
+DcsBiosRs485Device dcsBiosDevice(Serial, 8, 0);
 
 //DirectOutputPin testPin(13);
 
@@ -14,11 +14,11 @@ DcsBiosRs485Device dcsBiosDevice;
 
 LiquidCrystal cmspDisplay(12, 11, 5, 4, 3, 2);
 DirectAnalogOutput backlightOutput(10);
-DimmableLed cmspDisplayBacklight(0x10e6, 0xffff, 0, &backlightOutput);
+DimmableLed cmspDisplayBacklight(0x10e6, 0xffff, 0, backlightOutput);
 Potentiometer cmspDisplayBrightness("CMSP_BRT", A0, 10, 60);
 
-CmspDisplayLine cmspDisplayLine1(0x1000, &cmspDisplay, 0);
-CmspDisplayLine cmspDisplayLine2(0x1014, &cmspDisplay, 1);
+CmspDisplayLine cmspDisplayLine1(0x1000, cmspDisplay, 0);
+CmspDisplayLine cmspDisplayLine2(0x1014, cmspDisplay, 1);
 
 DimmableLed panelBacklight(0x1150, 0xffff, 0, 9);
 
@@ -48,7 +48,6 @@ void setup() {
   cmspDisplay.clear();
   
   Serial.begin(250000);
-  dcsBiosDevice.begin(&Serial, 8, 0);
 
   Wire.begin();
   TWBR = ((CPU_FREQ / TWI_FREQ) - 16) / 2;
